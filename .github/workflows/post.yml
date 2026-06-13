@@ -10,6 +10,9 @@ on:
     - cron: "0 13 * * *"
   workflow_dispatch:  # 允许手动触发
 
+permissions:
+  contents: write  # 允许 git push 回推 tweets.csv
+
 jobs:
   post:
     runs-on: ubuntu-latest
