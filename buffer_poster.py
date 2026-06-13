@@ -63,7 +63,7 @@ def post_to_buffer(text):
             "text": text,
             "channelId": CHANNEL_ID,
             "schedulingType": "automatic",
-            "mode": "addToQueue"
+            "mode": "shareNow"
         }
     }
     resp = requests.post(ENDPOINT, headers=HEADERS, json={
