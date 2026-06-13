@@ -62,6 +62,8 @@ def post_to_buffer(text):
         "input": {
             "text": text,
             "channelId": CHANNEL_ID,
+            "schedulingType": "automatic",
+            "mode": "addToQueue"
         }
     }
     resp = requests.post(ENDPOINT, headers=HEADERS, json={
