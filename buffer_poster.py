@@ -1,4 +1,5 @@
 ﻿import csv, os, sys, requests
+import random, time
 from datetime import datetime
 
 if sys.platform == "win32":
@@ -13,10 +14,10 @@ CHANNEL_ID = os.getenv("BUFFER_CHANNEL_ID")
 CSV_FILE = os.path.join(os.path.dirname(__file__), "tweets.csv")
 
 if not API_KEY:
-    print("X 环境变量 BUFFER_API_KEY 未设置")
+    print("X BUFFER_API_KEY not set")
     sys.exit(1)
 if not CHANNEL_ID:
-    print("X 环境变量 BUFFER_CHANNEL_ID 未设置")
+    print("X BUFFER_CHANNEL_ID not set")
     sys.exit(1)
 
 HEADERS = {
@@ -71,29 +72,31 @@ def post_to_buffer(text):
         "variables": variables
     })
     data = resp.json()
-
     if "errors" in data:
         return {"success": False, "error": str(data["errors"])}
-
     result = data.get("data", {}).get("createPost", {})
     if "post" in result:
         return {"success": True, "post_id": result["post"]["id"], "due_at": result["post"]["dueAt"]}
     else:
-        return {"success": False, "error": result.get("message", "未知错误")}
+        return {"success": False, "error": result.get("message", "unknown")}
 
 def main():
+    # 随机延迟 0~59 分钟，模拟真人发推
+    delay = random.randint(0, 3540)
+    print(f"[{datetime.now().isoformat()}] 随机延迟 {delay} 秒...")
+    time.sleep(delay)
     print(f"[{datetime.now().isoformat()}] 开始执行推文发布任务...")
     tweets = read_tweets(CSV_FILE)
     tweet = find_next_pending(tweets)
     if not tweet:
-        print("== 没有待发送的推文（所有推文已发送完毕）")
+        print("== 没有待发送的推文")
         return
-    print(f">> 正在发送推文: {tweet['text'][:50]}...")
+    print(f">> 发送: {tweet['text'][:50]}...")
     result = post_to_buffer(tweet["text"])
     if result["success"]:
         tweet["status"] = "sent"
         write_tweets(CSV_FILE, tweets)
-        print(f"OK 发送成功! Post ID: {result['post_id']}, 预定时间: {result['due_at']}")
+        print(f"OK 发送成功! Post: {result['post_id']}")
     else:
         print(f"XX 发送失败: {result['error']}")
         sys.exit(1)
